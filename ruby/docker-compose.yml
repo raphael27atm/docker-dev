@@ -1,0 +1,47 @@
+version: '2'
+services:
+
+  postgres:
+    image: 'postgres:9.5'
+    environment:
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'passaword'
+    ports:
+      - '5432:5432'
+    volumes:
+      - /home/raphael/backup/postgres:/var/lib/postgresql/data
+  
+  mongodb:
+    image: mongo:latest
+    environment:
+      - MONGO_LOG_DIR=/dev/null
+    volumes:
+      - /home/raphael/backup/mongo:/var/lib/mongodb
+    ports:
+        - 27017:27017
+    
+  redis:
+    image: redis:3.2.4-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - /home/raphael/backup/redis:/var/lib/redis
+    command: redis-server --appendonly yes  
+    
+  web:
+    build: .
+    command: rails server --port 3000 --binding 0.0.0.0
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongodb
+      - redis
+      - postgres
+    links:
+      - mongodb
+      - redis
+      - postgres
+    volumes:
+      - .:/home/web-app
+
+      
